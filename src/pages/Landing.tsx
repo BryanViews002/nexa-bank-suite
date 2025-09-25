@@ -1,6 +1,57 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const Landing = () => {
+  const [showIntro, setShowIntro] = useState(true);
+  const [showContent, setShowContent] = useState(false);
+
+  useEffect(() => {
+    // Show intro for 2.5 seconds, then fade to main content
+    const introTimer = setTimeout(() => {
+      setShowIntro(false);
+      // Small delay before showing main content for smooth transition
+      setTimeout(() => setShowContent(true), 300);
+    }, 2500);
+
+    return () => clearTimeout(introTimer);
+  }, []);
+
+  // Loading Intro Screen
+  if (showIntro) {
+    return (
+      <div className="fixed inset-0 bg-primary flex items-center justify-center z-50 animate-fade-in">
+        <div className="text-center">
+          {/* Animated Nexa Logo */}
+          <div className="relative mb-8">
+            <div className="w-32 h-32 bg-primary-foreground rounded-full flex items-center justify-center mx-auto animate-bounce-in">
+              <span className="text-primary font-bold text-6xl">N</span>
+            </div>
+            {/* Pulsing rings around logo */}
+            <div className="absolute inset-0 w-32 h-32 mx-auto border-4 border-primary-foreground/30 rounded-full animate-ping"></div>
+            <div className="absolute inset-2 w-28 h-28 mx-auto border-2 border-primary-foreground/20 rounded-full animate-ping delay-1000"></div>
+          </div>
+          
+          {/* Brand Text */}
+          <div className="animate-fade-in delay-500">
+            <h1 className="text-4xl font-bold text-primary-foreground mb-4">Nexa Bank</h1>
+            <p className="text-xl text-primary-foreground/80">Secure and Simple Banking</p>
+          </div>
+
+          {/* Loading Indicator */}
+          <div className="mt-12 animate-fade-in delay-1000">
+            <div className="w-48 h-1 bg-primary-foreground/20 rounded-full mx-auto overflow-hidden">
+              <div className="h-full bg-primary-foreground rounded-full animate-loading-bar"></div>
+            </div>
+            <p className="text-primary-foreground/60 text-sm mt-4">Initializing secure connection...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Landing Content (only show after intro)
+  if (!showContent) return null;
+
   return (
     <div className="nexa-hero">
       <div className="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

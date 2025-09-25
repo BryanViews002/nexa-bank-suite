@@ -165,6 +165,18 @@
   }
 }
 
+@keyframes loading-bar {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -230,6 +242,10 @@
 
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-loading-bar {
+    animation: loading-bar 2.5s ease-in-out;
   }
 
   /* Hero Section */
