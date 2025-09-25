@@ -2,41 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Nexa Banking App Design System - Professional & Secure */
 
 @layer base {
   :root {
+    /* Nexa Banking Color Palette */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 220 39% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 39% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 39% 11%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Nexa Blue - Professional Banking */
+    --primary: 220 91% 20%; /* blue-900 */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 220 91% 15%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Success Green */
+    --success: 142 76% 36%; /* green-500 */
+    --success-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Error Red */
+    --error: 0 84% 60%; /* red-500 */
+    --error-foreground: 0 0% 100%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 39% 11%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 39% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 91% 20%;
 
     --radius: 0.5rem;
+
+    /* Nexa Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(220 91% 20%), hsl(220 91% 15%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 14% 98%));
+    --gradient-background: linear-gradient(180deg, hsl(220 14% 98%), hsl(0 0% 100%));
+
+    /* Banking Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(220 91% 20% / 0.1), 0 2px 4px -1px hsl(220 91% 20% / 0.06);
+    --shadow-elevated: 0 10px 15px -3px hsl(220 91% 20% / 0.1), 0 4px 6px -2px hsl(220 91% 20% / 0.05);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
@@ -94,6 +116,55 @@ All colors MUST be HSL.
   }
 }
 
+/* Nexa Animation Keyframes */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px hsl(220 91% 20% / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(220 91% 20% / 0.8), 0 0 30px hsl(220 91% 20% / 0.6);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -101,5 +172,76 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background: var(--gradient-background);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Nexa Banking Components */
+  .nexa-btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold;
+    @apply hover:bg-primary/90 active:scale-95;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow-md hover:shadow-lg;
+    background: var(--gradient-hero);
+  }
+
+  .nexa-btn-secondary {
+    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-lg font-semibold;
+    @apply hover:bg-secondary/80 border border-border;
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .nexa-card {
+    @apply bg-card text-card-foreground p-6 rounded-xl;
+    @apply border border-border;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .nexa-input {
+    @apply w-full px-4 py-3 rounded-lg border border-input;
+    @apply bg-background text-foreground;
+    @apply focus:ring-2 focus:ring-ring focus:border-transparent;
+    @apply transition-all duration-200;
+  }
+
+  .nexa-error {
+    @apply text-error text-sm font-medium;
+  }
+
+  .nexa-success {
+    @apply text-success text-sm font-medium;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.8s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Hero Section */
+  .nexa-hero {
+    @apply min-h-screen flex flex-col items-center justify-center;
+    @apply bg-gradient-to-br from-primary via-primary/90 to-primary/80;
+    @apply text-primary-foreground relative overflow-hidden;
+  }
+
+  .nexa-hero::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent;
+    @apply transform rotate-12 scale-150;
   }
 }

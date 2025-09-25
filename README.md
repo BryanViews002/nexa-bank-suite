@@ -1,73 +1,165 @@
-# Welcome to your Lovable project
+# Nexa Bank - React Frontend
 
-## Project info
+A complete React 18 frontend application for Nexa Bank, featuring secure authentication, account management, and transaction processing.
 
-**URL**: https://lovable.dev/projects/6971428a-20be-40b0-870b-9f3458be84f2
+## 🚀 Features
 
-## How can I edit this code?
+- **Landing Page**: Animated hero section with Nexa branding
+- **Authentication**: Complete auth flow with OTP verification
+- **Account Management**: View multiple accounts with real-time balances
+- **Transactions**: Transfer, deposit, and withdraw functionality
+- **Responsive Design**: Mobile-friendly interface with professional banking aesthetics
+- **Security**: Session-based authentication with CORS support
 
-There are several ways of editing your application.
+## 🛠 Tech Stack
 
-**Use Lovable**
+- **React 18** with TypeScript
+- **React Router DOM 6** for navigation
+- **Tailwind CSS** with custom design system
+- **Shadcn/ui** components
+- **Session-based authentication** (JSESSIONID)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6971428a-20be-40b0-870b-9f3458be84f2) and start prompting.
+## 📋 Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js (v16 or higher)
+- npm or yarn
+- Spring Boot backend running on `http://localhost:8080`
 
-**Use your preferred IDE**
+## 🚀 Installation & Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd nexa-bank-frontend
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Follow these steps:
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+4. **Open your browser**
+   Navigate to `http://localhost:3000` (or the port shown in terminal)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🔧 Backend Requirements
 
-# Step 3: Install the necessary dependencies.
-npm i
+The frontend expects a Spring Boot backend running on `http://localhost:8080` with the following endpoints:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Authentication Endpoints
+- `POST /register` - User registration
+- `POST /login` - User login with MFA
+- `POST /auth/verify-otp` - OTP verification
+- `POST /auth/request-password-reset` - Password reset request
+- `POST /auth/confirm-password-reset` - Password reset confirmation
+- `GET /auth/get-otp` - Get OTP (dev mode only)
+- `POST /auth/logout` - User logout
+
+### Banking Endpoints
+- `GET /accounts` - Get user accounts
+- `GET /transactions` - Get transaction history
+- `POST /transactions/transfer` - Transfer between accounts
+- `POST /transactions/deposit` - Deposit money
+- `POST /transactions/withdraw` - Withdraw money
+
+## 🎨 Design System
+
+Nexa Bank features a professional design system with:
+
+- **Colors**: Blue-900 primary, Green-500 success, Red-500 error
+- **Typography**: Clean, readable fonts with proper hierarchy
+- **Components**: Reusable UI components with consistent styling
+- **Animations**: Smooth transitions and micro-interactions
+- **Responsive**: Mobile-first design approach
+
+## 📱 Application Structure
+
+```
+src/
+├── components/
+│   └── Navbar.tsx          # Navigation with conditional rendering
+├── pages/
+│   ├── Landing.tsx         # Hero/landing page
+│   ├── Login.tsx           # User authentication
+│   ├── Register.tsx        # User registration
+│   ├── ResetPassword.tsx   # Password reset flow
+│   ├── Otp.tsx            # OTP verification
+│   └── Dashboard.tsx       # Main banking interface
+├── hooks/
+│   └── use-toast.ts       # Toast notifications
+└── lib/
+    └── utils.ts           # Utility functions
 ```
 
-**Edit a file directly in GitHub**
+## 🔐 Authentication Flow
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. **Registration**: Create account with username, email, password, fullName
+2. **Login**: Authenticate with username/password → OTP required
+3. **OTP Verification**: 6-digit code verification for login/password reset
+4. **Password Reset**: Email → new password → OTP verification
+5. **Session Management**: Automatic redirects based on auth status
 
-**Use GitHub Codespaces**
+## 💰 Banking Features
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Dashboard
+- **Account Overview**: View all accounts with balances
+- **Transaction History**: Complete transaction log with filtering
+- **Quick Actions**: Transfer, deposit, withdraw forms
 
-## What technologies are used for this project?
+### Transactions
+- **Transfer**: Move money between user's own accounts
+- **Deposit**: Add money to any account
+- **Withdraw**: Remove money from accounts (with balance checks)
 
-This project is built with:
+## 🎯 Development Guidelines
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Error Handling
+- Network errors: "Contact Nexa support"
+- 401 Unauthorized: Redirect to login
+- 403 Forbidden: Show balance/permission errors
+- 400 Bad Request: Show validation errors
 
-## How can I deploy this project?
+### Success Messages
+- Toast notifications for successful operations
+- Real-time balance updates
+- Smooth transitions and feedback
 
-Simply open [Lovable](https://lovable.dev/projects/6971428a-20be-40b0-870b-9f3458be84f2) and click on Share -> Publish.
+## 🔧 Available Scripts
 
-## Can I connect a custom domain to my Lovable project?
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-Yes, you can!
+## 🌐 CORS Configuration
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+The frontend is configured to work with a Spring Boot backend at `http://localhost:8080` with:
+- `credentials: 'include'` for all API calls
+- Session-based authentication (JSESSIONID)
+- Proper error handling for CORS issues
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📝 Environment Notes
+
+- **Development**: OTP codes are displayed in the UI for testing
+- **Production**: OTP codes are only sent via backend (contact support message shown)
+- All API calls include credentials for session management
+
+## 🤝 Contributing
+
+1. Follow the existing code structure and naming conventions
+2. Use the established design system for new components
+3. Add proper error handling and loading states
+4. Test authentication flows thoroughly
+5. Ensure responsive design across devices
+
+## 📞 Support
+
+For issues or questions about Nexa Bank, contact our support team.
+
+---
+
+**Note**: This frontend application requires the corresponding Spring Boot backend to be running on `http://localhost:8080` with proper CORS configuration for `http://localhost:3000`.
