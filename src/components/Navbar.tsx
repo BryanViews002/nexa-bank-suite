@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -68,6 +69,7 @@ const Navbar = () => {
             <Link to="/" className="hover:text-primary-foreground/80 transition-colors">
               Home
             </Link>
+            <ThemeToggle />
             {!isAuthenticated ? (
               <>
                 <Link to="/login" className="hover:text-primary-foreground/80 transition-colors">
@@ -119,6 +121,10 @@ const Navbar = () => {
             >
               Home
             </Link>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Theme</span>
+              <ThemeToggle />
+            </div>
             {!isAuthenticated ? (
               <>
                 <Link 
