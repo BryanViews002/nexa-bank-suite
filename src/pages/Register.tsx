@@ -1,17 +1,28 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff, UserPlus, ArrowLeft } from "lucide-react";
+
+interface RegisterForm {
+  fullName: string;
+  username: string;
+  email: string;
+  password: string;
+}
 
 const Register = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterForm>({
+    fullName: '',
     username: '',
     email: '',
-    password: '',
-    fullName: '',
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -21,8 +32,7 @@ const Register = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
-    if (error) setError('');
+    setError(''); // Clear errors when user types
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,133 +50,155 @@ const Register = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
         toast({
-          title: "Registration Successful!",
-          description: data.message,
-          variant: "default",
+          title: "Registration Successful",
+          description: "Your account has been created. Please sign in.",
         });
         navigate('/login');
       } else {
-        switch (response.status) {
-          case 409:
-            setError('Username or email already exists. Please choose different credentials.');
-            break;
-          default:
-            setError(data.message || 'Registration failed. Please try again.');
+        const errorData = await response.json();
+        if (response.status === 409) {
+          setError('User already exists with this username or email.');
+        } else {
+          setError(errorData.message || 'Registration failed. Please try again.');
         }
       }
     } catch (error) {
-      setError('Network error. Contact Nexa support.');
+      console.error('Registration error:', error);
+      setError('Network error. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="nexa-card max-w-md w-full animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-bold text-2xl">N</span>
-          </div>
-          <h1 className="text-2xl font-bold text-primary mb-2">Join Nexa Bank</h1>
-          <p className="text-muted-foreground">Create your secure banking account</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-foreground mb-2">
-              Full Name
-            </label>
-            <input
-              id="fullName"
-              name="fullName"
-              type="text"
-              required
-              className="nexa-input"
-              placeholder="Enter your full name"
-              value={formData.fullName}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              className="nexa-input"
-              placeholder="Choose a username"
-              value={formData.username}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="nexa-input"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="nexa-input"
-              placeholder="Create a strong password"
-              value={formData.password}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          {error && (
-            <div className="nexa-error bg-error/10 border border-error/20 rounded-lg p-3">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="nexa-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+      <div className="w-full max-w-md">
+        {/* Back to Home */}
+        <div className="mb-6">
+          <Link 
+            to="/" 
+            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
           >
-            {loading ? 'Creating Account...' : 'Create Nexa Account'}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <div className="text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link
-              to="/login"
-              className="text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-              Sign in to Nexa
-            </Link>
-          </div>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Link>
         </div>
+
+        <Card className="nexa-card">
+          <CardHeader className="space-y-1 text-center">
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+            <CardDescription>
+              Join Nexa Bank for secure and simple banking
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 text-sm text-error bg-error/10 border border-error/20 rounded-lg">
+                  {error}
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <label htmlFor="fullName" className="text-sm font-medium text-foreground">
+                  Full Name
+                </label>
+                <Input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  placeholder="Enter your full name"
+                  required
+                  className="nexa-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="username" className="text-sm font-medium text-foreground">
+                  Username
+                </label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  placeholder="Choose a username"
+                  required
+                  className="nexa-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-foreground">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter your email"
+                  required
+                  className="nexa-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-foreground">
+                  Password
+                </label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Create a password"
+                    required
+                    className="nexa-input pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full nexa-btn-primary"
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link 
+                to="/login" 
+                className="text-primary hover:text-primary/80 font-medium transition-colors"
+              >
+                Sign in here
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
