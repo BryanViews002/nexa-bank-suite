@@ -84,7 +84,7 @@ const Dashboard = () => {
       const accountsData = await accountsResponse.json();
       setAccounts(accountsData);
 
-      // Fetch transactions
+      // Fetch transactions (aggregate for overview)
       const transactionsResponse = await fetch('http://localhost:8080/transactions', {
         credentials: 'include',
       });
@@ -526,7 +526,10 @@ const Dashboard = () => {
 
           {/* Accounts Tab */}
           <TabsContent value="accounts">
-            <AccountManagement accounts={accounts} onAccountsUpdate={fetchDashboardData} />
+            <AccountManagement 
+              accounts={accounts} 
+              onAccountsUpdate={fetchDashboardData} 
+            />
           </TabsContent>
 
           {/* Transactions Tab */}
@@ -541,6 +544,20 @@ const Dashboard = () => {
                   transactionCount={transactions.length}
                   filteredCount={filteredTransactions.length}
                 />
+                <div className="space-y-4">
+                  {filteredTransactions.map((transaction) => (
+                    <div key={transaction.transactionId} className="flex justify-between items-center p-3 rounded-lg bg-secondary/50">
+                      <div>
+                        <p className="font-medium">{transaction.type}</p>
+                        <p className="text-sm text-muted-foreground">Account #{transaction.accountId}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(transaction.date).toLocaleString()}</p>
+                      </div>
+                      <p className={`font-bold ${transaction.type === 'Deposit' ? 'text-success' : 'text-error'}`}>
+                        <AnimatedNumber value={transaction.amount} prefix="$" />
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
