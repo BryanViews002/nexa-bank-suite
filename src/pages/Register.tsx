@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AuthLayout, AuthError } from "@/components/layout/AuthLayout";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, UserPlus, ArrowLeft } from "lucide-react";
+import { apiUrl, jsonPost, readError } from "@/lib/api";
+import { OnboardingContract, resolveAuthRedirect } from "@/lib/auth-flow";
+import { cn } from "@/lib/utils";
 
 interface RegisterForm {
   fullName: string;
@@ -13,194 +14,217 @@ interface RegisterForm {
   password: string;
 }
 
+/**
+ * Advisory only — the backend remains the authority on what it accepts. This
+ * exists so the user sees the requirements while typing rather than being told
+ * after a round trip.
+ */
+const RULES = [
+  { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
+  { label: "One uppercase letter", test: (v: string) => /[A-Z]/.test(v) },
+  { label: "One number", test: (v: string) => /\d/.test(v) },
+];
+
+const STRENGTH_LABELS = ["Too short", "Weak", "Good", "Strong"] as const;
+const STRENGTH_STYLES = ["bg-destructive", "bg-destructive", "bg-warning", "bg-credit"] as const;
+
 const Register = () => {
   const [formData, setFormData] = useState<RegisterForm>({
-    fullName: '',
-    username: '',
-    email: '',
-    password: ''
+    fullName: "",
+    username: "",
+    email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const passed = useMemo(() => RULES.map((rule) => rule.test(formData.password)), [formData.password]);
+  const score = passed.filter(Boolean).length;
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    setError(''); // Clear errors when user types
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('http://localhost:8080/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(apiUrl("/api/v1/auth/register"), jsonPost(formData));
 
       if (response.ok) {
+        const data: OnboardingContract & { message?: string } = await response.json();
         toast({
-          title: "Registration Successful",
-          description: "Your account has been created. Please sign in.",
+          title: "Account created",
+          description: data.nextAction === "CONTINUE" ? "Your account is ready." : "Next, verify your identity.",
         });
-        navigate('/login');
+        navigate(resolveAuthRedirect(data, "/kyc"));
+      } else if (response.status === 409) {
+        setError("That username or email is already registered. Try signing in instead.");
       } else {
-        const errorData = await response.json();
-        if (response.status === 409) {
-          setError('User already exists with this username or email.');
-        } else {
-          setError(errorData.message || 'Registration failed. Please try again.');
-        }
+        setError(await readError(response, "We couldn't create your account. Please check your details."));
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError('Network error. Please try again.');
+    } catch {
+      setError("We couldn't reach the server. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
-      <div className="w-full max-w-md">
-        {/* Back to Home */}
-        <div className="mb-6">
-          <Link 
-            to="/" 
-            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+    <AuthLayout
+      title="Open your account"
+      subtitle="Takes about a minute. No minimum balance."
+      back={{ to: "/", label: "Back to home" }}
+      footer={
+        <p className="text-muted-foreground">
+          Already have an account?{" "}
+          <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+            Sign in
           </Link>
+        </p>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <AuthError message={error} />
+
+        <div>
+          <label htmlFor="fullName" className="field-label">
+            Full name
+          </label>
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            autoComplete="name"
+            autoFocus
+            value={formData.fullName}
+            onChange={handleInputChange}
+            placeholder="Jordan Ellis"
+            required
+            className="field"
+          />
         </div>
 
-        <Card className="nexa-card">
-          <CardHeader className="space-y-1 text-center">
-            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserPlus className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>
-              Join Nexa Bank for secure and simple banking
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="p-3 text-sm text-error bg-error/10 border border-error/20 rounded-lg">
-                  {error}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="username" className="field-label">
+              Username
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              placeholder="jordan"
+              required
+              className="field"
+            />
+            <p className="field-hint">Others use this to send you money.</p>
+          </div>
+
+          <div>
+            <label htmlFor="email" className="field-label">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="jordan@example.com"
+              required
+              className="field"
+            />
+            <p className="field-hint">Used for security codes.</p>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="password" className="field-label">
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Create a password"
+              required
+              className="field pr-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+
+          {formData.password.length > 0 && (
+            <div className="mt-3 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <div className="flex flex-1 gap-1" aria-hidden="true">
+                  {RULES.map((_, i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        "h-1 flex-1 rounded-full transition-colors duration-300",
+                        i < score ? STRENGTH_STYLES[score] : "bg-border",
+                      )}
+                    />
+                  ))}
                 </div>
-              )}
-              
-              <div className="space-y-2">
-                <label htmlFor="fullName" className="text-sm font-medium text-foreground">
-                  Full Name
-                </label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  placeholder="Enter your full name"
-                  required
-                  className="nexa-input"
-                />
+                <span className="text-xs font-medium text-muted-foreground">{STRENGTH_LABELS[score]}</span>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="username" className="text-sm font-medium text-foreground">
-                  Username
-                </label>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  placeholder="Choose a username"
-                  required
-                  className="nexa-input"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Enter your email"
-                  required
-                  className="nexa-input"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Password
-                </label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Create a password"
-                    required
-                    className="nexa-input pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+              <ul className="mt-2.5 space-y-1">
+                {RULES.map((rule, i) => (
+                  <li
+                    key={rule.label}
+                    className={cn(
+                      "flex items-center gap-1.5 text-xs transition-colors",
+                      passed[i] ? "text-credit" : "text-muted-foreground",
+                    )}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full nexa-btn-primary"
-              >
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link 
-                to="/login" 
-                className="text-primary hover:text-primary/80 font-medium transition-colors"
-              >
-                Sign in here
-              </Link>
+                    <Check
+                      className={cn("h-3 w-3 transition-opacity", passed[i] ? "opacity-100" : "opacity-35")}
+                      strokeWidth={3}
+                      aria-hidden="true"
+                    />
+                    {rule.label}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          )}
+        </div>
+
+        <button type="submit" disabled={loading} className="btn btn-primary w-full">
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? "Creating account…" : "Create account"}
+        </button>
+
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+          This is a demonstration application. Please don't enter real banking credentials.
+        </p>
+      </form>
+    </AuthLayout>
   );
 };
 

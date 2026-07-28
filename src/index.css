@@ -2,125 +2,472 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Nexa Banking App Design System - Professional & Secure */
+/* ---------------------------------------------------------------------------
+   Nexa design tokens
+
+   Neutrals carry a slight blue cast rather than being pure gray — it reads
+   warmer on screen and keeps the brand accent from feeling bolted on.
+   The accent is deliberately rationed: primary actions, active nav, focus
+   rings, and links. Nothing else.
+--------------------------------------------------------------------------- */
 
 @layer base {
-  :root {
-    /* Nexa Banking Color Palette */
-    --background: 0 0% 100%;
-    --foreground: 220 39% 11%;
+  :root,
+  .dark {
+    color-scheme: dark;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 39% 11%;
+    --background: 224 26% 6%;
+    --foreground: 210 22% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 39% 11%;
+    /* Raised surfaces. Each step is a real elevation level, not decoration. */
+    --card: 224 22% 9%;
+    --card-foreground: 210 22% 96%;
+    --elevated: 223 20% 12%;
+    --popover: 223 21% 11%;
+    --popover-foreground: 210 22% 96%;
 
-    /* Nexa Blue - Professional Banking */
-    --primary: 220 91% 20%; /* blue-900 */
+    /* Brand accent */
+    --primary: 219 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 91% 15%;
+    --primary-hover: 219 91% 66%;
+    --primary-muted: 219 60% 20%;
 
-    /* Success Green */
-    --success: 142 76% 36%; /* green-500 */
+    --secondary: 224 18% 14%;
+    --secondary-foreground: 214 15% 82%;
+
+    --muted: 224 18% 13%;
+    --muted-foreground: 218 11% 62%;
+
+    --accent: 224 18% 15%;
+    --accent-foreground: 210 22% 96%;
+
+    /* Money semantics. Credit is green, debit stays neutral — colouring every
+       outflow red makes a normal statement look like a list of errors. */
+    --credit: 152 56% 48%;
+    --credit-foreground: 152 60% 12%;
+    --credit-muted: 152 40% 16%;
+    --debit: 218 11% 62%;
+
+    --success: 152 56% 48%;
     --success-foreground: 0 0% 100%;
-
-    /* Error Red */
-    --error: 0 84% 60%; /* red-500 */
+    --warning: 38 92% 56%;
+    --warning-foreground: 38 90% 10%;
+    --destructive: 358 68% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --error: 358 68% 58%;
     --error-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 39% 11%;
+    --border: 222 15% 18%;
+    --border-strong: 222 14% 26%;
+    --input: 222 15% 18%;
+    --ring: 219 91% 60%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --radius: 0.625rem;
 
-    --accent: 220 14% 96%;
-    --accent-foreground: 220 39% 11%;
+    /* Chart surface */
+    --chart-grid: 222 15% 16%;
+    --chart-axis: 218 11% 45%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 220 91% 20%;
-
-    --radius: 0.5rem;
-
-    /* Nexa Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(220 91% 20%), hsl(220 91% 15%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 14% 98%));
-    --gradient-background: linear-gradient(180deg, hsl(220 14% 98%), hsl(0 0% 100%));
-
-    /* Banking Shadows */
-    --shadow-card: 0 4px 6px -1px hsl(220 91% 20% / 0.1), 0 2px 4px -1px hsl(220 91% 20% / 0.06);
-    --shadow-elevated: 0 10px 15px -3px hsl(220 91% 20% / 0.1), 0 4px 6px -2px hsl(220 91% 20% / 0.05);
-
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Elevation. Dark UI leans on borders and a faint inner highlight rather
+       than drop shadows, which mostly disappear against a dark background. */
+    --shadow-xs: 0 1px 2px 0 hsl(224 40% 2% / 0.4);
+    --shadow-sm: 0 1px 3px 0 hsl(224 40% 2% / 0.5), 0 1px 2px -1px hsl(224 40% 2% / 0.5);
+    --shadow-md: 0 4px 12px -2px hsl(224 40% 2% / 0.55), 0 2px 6px -2px hsl(224 40% 2% / 0.4);
+    --shadow-lg: 0 16px 32px -8px hsl(224 40% 2% / 0.65), 0 6px 12px -6px hsl(224 40% 2% / 0.5);
+    --shadow-glow: 0 0 0 1px hsl(var(--primary) / 0.25), 0 8px 28px -8px hsl(var(--primary) / 0.35);
+    --highlight: inset 0 1px 0 0 hsl(0 0% 100% / 0.04);
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  .light {
+    color-scheme: light;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --background: 220 33% 98%;
+    --foreground: 224 32% 11%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 32% 11%;
+    --elevated: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 32% 11%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 219 88% 51%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 219 88% 45%;
+    --primary-muted: 219 90% 95%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 24% 95%;
+    --secondary-foreground: 222 20% 30%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 220 24% 95%;
+    --muted-foreground: 220 10% 42%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 220 24% 95%;
+    --accent-foreground: 224 32% 11%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --credit: 152 62% 30%;
+    --credit-foreground: 0 0% 100%;
+    --credit-muted: 152 55% 94%;
+    --debit: 220 10% 42%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 152 62% 30%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 88% 42%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 358 66% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --error: 358 66% 48%;
+    --error-foreground: 0 0% 100%;
+
+    --border: 220 18% 90%;
+    --border-strong: 220 16% 80%;
+    --input: 220 18% 88%;
+    --ring: 219 88% 51%;
+
+    --chart-grid: 220 20% 92%;
+    --chart-axis: 220 10% 50%;
+
+    --shadow-xs: 0 1px 2px 0 hsl(224 30% 30% / 0.06);
+    --shadow-sm: 0 1px 3px 0 hsl(224 30% 30% / 0.08), 0 1px 2px -1px hsl(224 30% 30% / 0.06);
+    --shadow-md: 0 4px 12px -2px hsl(224 30% 30% / 0.1), 0 2px 6px -2px hsl(224 30% 30% / 0.06);
+    --shadow-lg: 0 16px 32px -8px hsl(224 30% 30% / 0.14), 0 6px 12px -6px hsl(224 30% 30% / 0.08);
+    --shadow-glow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 8px 28px -8px hsl(var(--primary) / 0.3);
+    --highlight: inset 0 1px 0 0 hsl(0 0% 100% / 0.6);
   }
 }
 
-/* Nexa Animation Keyframes */
-@keyframes fade-in {
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Inter's stylistic sets: disambiguated 1/l/I and a friendlier single-storey
+       g. Small change, but it is most of what separates Inter-as-shipped from
+       Inter-as-used by design teams. */
+    font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1, "cv11" 1, "ss03" 1;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-semibold text-foreground;
+    letter-spacing: -0.021em;
+  }
+
+  /* Optical correction: large display text needs tighter tracking than body. */
+  .text-display,
+  h1 {
+    letter-spacing: -0.035em;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.28);
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Scrollbars — themed, not left at browser default. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border-strong)) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border-strong));
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+    background-clip: content-box;
+  }
+
+  /* Number inputs: strip the spinners, they look unfinished next to a currency
+     field and users type amounts anyway. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Components
+--------------------------------------------------------------------------- */
+
+@layer components {
+  /* Tabular figures so digits stay column-aligned in tables and don't jitter
+     while a balance animates. Non-negotiable for anything showing money. */
+  .tabular {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1, "cv02" 1, "cv03" 1, "cv04" 1;
+  }
+
+  .surface {
+    @apply rounded-xl border border-border bg-card;
+    box-shadow: var(--shadow-sm), var(--highlight);
+  }
+
+  .surface-flat {
+    @apply rounded-xl border border-border bg-card;
+  }
+
+  .surface-interactive {
+    @apply surface transition-[border-color,box-shadow,transform] duration-200;
+  }
+
+  .surface-interactive:hover {
+    border-color: hsl(var(--border-strong));
+    box-shadow: var(--shadow-md), var(--highlight);
+  }
+
+  /* Small uppercase label. Used sparingly — on field labels and table headers,
+     never on body copy. */
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-foreground;
+  }
+
+  .field-hint {
+    @apply mt-1.5 text-xs text-muted-foreground;
+  }
+
+  /* Inputs — shared shape so native selects, inputs and textareas line up. */
+  .field {
+    @apply h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm text-foreground;
+    @apply transition-[border-color,box-shadow] duration-150;
+    @apply placeholder:text-muted-foreground/70;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .field:focus {
+    @apply outline-none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.16);
+  }
+
+  .field[aria-invalid="true"] {
+    border-color: hsl(var(--destructive));
+  }
+
+  .field[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px hsl(var(--destructive) / 0.16);
+  }
+
+  select.field {
+    @apply cursor-pointer appearance-none bg-no-repeat pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888f9e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.85rem center;
+    background-size: 1rem;
+  }
+
+  select.field option {
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+  }
+
+  /* Buttons. The 1px translate on press is what makes a button feel physical;
+     scale transforms blur text at these sizes. */
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium;
+    @apply transition-[background-color,border-color,color,box-shadow,transform] duration-150;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+    @apply h-11 px-5;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-primary-foreground;
+    box-shadow: var(--shadow-xs), inset 0 1px 0 0 hsl(0 0% 100% / 0.14);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: hsl(var(--primary-hover));
+    box-shadow: var(--shadow-sm), inset 0 1px 0 0 hsl(0 0% 100% / 0.14);
+  }
+
+  .btn-secondary {
+    @apply btn border border-border bg-card text-foreground;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    @apply bg-accent;
+    border-color: hsl(var(--border-strong));
+  }
+
+  .btn-ghost {
+    @apply btn text-muted-foreground;
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    @apply bg-accent text-foreground;
+  }
+
+  .btn-sm {
+    @apply h-9 gap-1.5 rounded-md px-3.5 text-[13px];
+  }
+
+  .btn-lg {
+    @apply h-12 px-6 text-[15px];
+  }
+
+  /* Sidebar navigation */
+  .nav-item {
+    @apply relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground;
+    @apply transition-colors duration-150;
+  }
+
+  .nav-item:hover {
+    @apply bg-accent text-foreground;
+  }
+  /* The active marker is now a physical sliding div in DashboardShell */
+
+  /* Divider with a label, e.g. "or continue with" */
+  .divider-label {
+    @apply relative text-center;
+  }
+
+  .divider-label::before {
+    content: "";
+    @apply absolute left-0 top-1/2 h-px w-full bg-border;
+  }
+
+  .divider-label > span {
+    @apply relative bg-background px-3 text-xs text-muted-foreground;
+  }
+
+  /* Backdrop grid — very low contrast, used behind marketing sections only. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.6) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.6) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(hsl(var(--border-strong) / 0.7) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  /* Masks the backdrop out toward the edges so it never hits a hard boundary. */
+  .mask-fade {
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(180deg, hsl(var(--foreground)) 0%, hsl(var(--foreground) / 0.62) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Staggers a list's entrance. Set --i on each child. */
+  .stagger > * {
+    animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.12) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  .hero-grid {
+    background-size: 64px 64px;
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.4) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.4) 1px, transparent 1px);
+    mask-image: linear-gradient(to bottom, black 20%, transparent 90%);
+  }
+
+  .hero-vignette {
+    background: radial-gradient(circle at center, transparent 40%, #07090d 100%);
+  }
+
+  .security-lines {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      hsl(var(--border) / 0.4) 0px,
+      hsl(var(--border) / 0.4) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+  }
+
+  .nexa-scene-fallback {
+    @apply absolute inset-0 bg-[#07090d]/50 backdrop-blur-3xl;
+  }
+}
+
+@keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -128,136 +475,62 @@
   }
 }
 
-@keyframes slide-in-right {
+@keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateX(50px);
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes marquee {
+  from {
     transform: translateX(0);
   }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
-@keyframes bounce-in {
+@keyframes pulse-ring {
   0% {
-    transform: scale(0.3);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.05);
+    box-shadow: 0 0 0 0 hsl(var(--credit) / 0.5);
   }
   70% {
-    transform: scale(0.9);
+    box-shadow: 0 0 0 6px hsl(var(--credit) / 0);
   }
   100% {
-    transform: scale(1);
-    opacity: 1;
+    box-shadow: 0 0 0 0 hsl(var(--credit) / 0);
   }
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px hsl(220 91% 20% / 0.5);
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
   }
-  50% {
-    box-shadow: 0 0 20px hsl(220 91% 20% / 0.8), 0 0 30px hsl(220 91% 20% / 0.6);
-  }
-}
-
-@keyframes loading-bar {
-  0% {
-    width: 0%;
-  }
-  50% {
-    width: 70%;
-  }
-  100% {
-    width: 100%;
+  to {
+    stroke-dashoffset: 0;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    background: var(--gradient-background);
-    min-height: 100vh;
-  }
-}
-
-@layer components {
-  /* Nexa Banking Components */
-  .nexa-btn-primary {
-    @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold;
-    @apply hover:bg-primary/90 active:scale-95;
-    @apply transition-all duration-200 ease-in-out;
-    @apply shadow-md hover:shadow-lg;
-    background: var(--gradient-hero);
-  }
-
-  .nexa-btn-secondary {
-    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-lg font-semibold;
-    @apply hover:bg-secondary/80 border border-border;
-    @apply transition-all duration-200 ease-in-out;
-  }
-
-  .nexa-card {
-    @apply bg-card text-card-foreground p-6 rounded-xl;
-    @apply border border-border;
-    background: var(--gradient-card);
-    box-shadow: var(--shadow-card);
-  }
-
-  .nexa-input {
-    @apply w-full px-4 py-3 rounded-lg border border-input;
-    @apply bg-background text-foreground;
-    @apply focus:ring-2 focus:ring-ring focus:border-transparent;
-    @apply transition-all duration-200;
-  }
-
-  .nexa-error {
-    @apply text-error text-sm font-medium;
-  }
-
-  .nexa-success {
-    @apply text-success text-sm font-medium;
-  }
-
-  /* Animations */
-  .animate-fade-in {
-    animation: fade-in 0.6s ease-out;
-  }
-
-  .animate-slide-in-right {
-    animation: slide-in-right 0.8s ease-out;
-  }
-
-  .animate-bounce-in {
-    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
-  .animate-loading-bar {
-    animation: loading-bar 2.5s ease-in-out;
-  }
-
-  /* Hero Section */
-  .nexa-hero {
-    @apply min-h-screen flex flex-col items-center justify-center;
-    @apply bg-gradient-to-br from-primary via-primary/90 to-primary/80;
-    @apply text-primary-foreground relative overflow-hidden;
-  }
-
-  .nexa-hero::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent;
-    @apply transform rotate-12 scale-150;
+/* Honour the OS setting. Everything above is decorative. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

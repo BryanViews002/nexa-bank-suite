@@ -1,193 +1,184 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Loader2, MailCheck } from "lucide-react";
+import { AuthLayout, AuthError } from "@/components/layout/AuthLayout";
+import { useToast } from "@/hooks/use-toast";
+import { apiUrl, jsonPost, readError } from "@/lib/api";
+import { cn } from "@/lib/utils";
+
+type Step = "email" | "password";
 
 const ResetPassword = () => {
-  const [step, setStep] = useState<'email' | 'password'>('email');
-  const [formData, setFormData] = useState({
-    email: '',
-    newPassword: '',
-  });
+  const [step, setStep] = useState<Step>("email");
+  const [formData, setFormData] = useState({ email: "", newPassword: "" });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (error) setError('');
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (error) setError("");
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('http://localhost:8080/auth/request-password-reset', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email: formData.email }),
-      });
-
+      const response = await fetch(apiUrl("/api/v1/auth/request-password-reset"), jsonPost({ email: formData.email }));
       const data = await response.json();
 
       if (response.ok) {
         toast({
-          title: "Reset Code Sent",
-          description: data.message,
-          variant: "default",
+          title: "Code sent",
+          description: data.message || `Check ${formData.email} for your code.`,
         });
-        setStep('password');
+        setStep("password");
       } else {
-        setError(data.message || 'Failed to send reset code. Please try again.');
+        setError(await readError(response, "We couldn't send a code to that address."));
       }
-    } catch (error) {
-      setError('Network error. Contact Nexa support.');
+    } catch {
+      setError("We couldn't reach the server. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
-    // Store data for OTP verification
-    localStorage.setItem('resetEmail', formData.email);
-    localStorage.setItem('newPassword', formData.newPassword);
-    localStorage.setItem('otpPurpose', 'PASSWORD_RESET');
+    // The new password is only committed once the code is verified on the OTP
+    // screen, so it's staged here and confirmed there in a single request.
+    localStorage.setItem("resetEmail", formData.email);
+    localStorage.setItem("newPassword", formData.newPassword);
+    localStorage.setItem("otpPurpose", "PASSWORD_RESET");
 
-    toast({
-      title: "Ready for Verification",
-      description: "Please enter the OTP to complete password reset",
-      variant: "default",
-    });
-    
-    navigate('/otp');
+    navigate("/otp");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="nexa-card max-w-md w-full animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-bold text-2xl">N</span>
-          </div>
-          <h1 className="text-2xl font-bold text-primary mb-2">
-            {step === 'email' ? 'Reset Password' : 'Set New Password'}
-          </h1>
+    <AuthLayout
+      title={step === "email" ? "Reset your password" : "Choose a new password"}
+      subtitle={
+        step === "email"
+          ? "We'll email you a six-digit code to confirm it's you."
+          : "You'll confirm this with the code we just sent."
+      }
+      back={
+        step === "email"
+          ? { to: "/login", label: "Back to sign in" }
+          : { to: "/login", label: "Back to sign in" }
+      }
+      footer={
+        step === "email" ? (
           <p className="text-muted-foreground">
-            {step === 'email' 
-              ? 'Enter your email to receive a reset code from Nexa' 
-              : 'Enter your new password for Nexa account'
-            }
+            Remembered it?{" "}
+            <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+              Sign in
+            </Link>
           </p>
-        </div>
+        ) : undefined
+      }
+    >
+      {/* Two-step progress. Explicit steps stop the flow feeling like it jumped
+          somewhere unexpected when the form swaps out. */}
+      <div className="mb-7 flex items-center gap-2" aria-hidden="true">
+        {(["email", "password"] as const).map((s, i) => (
+          <div key={s} className="flex flex-1 items-center gap-2">
+            <span
+              className={cn(
+                "h-1 flex-1 rounded-full transition-colors duration-300",
+                step === "password" || i === 0 ? "bg-primary" : "bg-border",
+              )}
+            />
+          </div>
+        ))}
+        <span className="text-xs font-medium text-muted-foreground">Step {step === "email" ? 1 : 2} of 2</span>
+      </div>
 
-        {step === 'email' ? (
-          <form onSubmit={handleEmailSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="nexa-input"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleInputChange}
-              />
-            </div>
+      {step === "email" ? (
+        <form onSubmit={handleEmailSubmit} className="space-y-5" noValidate>
+          <AuthError message={error} />
 
-            {error && (
-              <div className="nexa-error bg-error/10 border border-error/20 rounded-lg p-3">
-                {error}
-              </div>
-            )}
+          <div>
+            <label htmlFor="email" className="field-label">
+              Email address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              required
+              className="field"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleInputChange}
+            />
+            <p className="field-hint">Use the address on your Nexa account.</p>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="nexa-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending Reset Code...' : 'Send Reset Code'}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handlePasswordSubmit} className="space-y-6">
-            <div className="bg-success/10 border border-success/20 rounded-lg p-3 mb-4">
-              <p className="nexa-success text-center">
-                Reset code sent to {formData.email}
-              </p>
-            </div>
+          <button type="submit" disabled={loading} className="btn btn-primary w-full">
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Sending…" : "Send code"}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handlePasswordSubmit} className="space-y-5" noValidate>
+          <div className="flex items-start gap-3 rounded-lg border border-credit/25 bg-credit-muted px-3.5 py-3">
+            <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-credit" aria-hidden="true" />
+            <p className="text-[13px] leading-relaxed">
+              Code sent to <span className="font-medium">{formData.email}</span>
+            </p>
+          </div>
 
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
-                New Password
-              </label>
+          <AuthError message={error} />
+
+          <div>
+            <label htmlFor="newPassword" className="field-label">
+              New password
+            </label>
+            <div className="relative">
               <input
                 id="newPassword"
                 name="newPassword"
-                type="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                autoFocus
                 required
-                className="nexa-input"
-                placeholder="Enter your new password"
+                className="field pr-11"
+                placeholder="Create a new password"
                 value={formData.newPassword}
                 onChange={handleInputChange}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
-
-            {error && (
-              <div className="nexa-error bg-error/10 border border-error/20 rounded-lg p-3">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="nexa-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Continue to Verification
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStep('email')}
-              className="nexa-btn-secondary w-full"
-            >
-              Back to Email
-            </button>
-          </form>
-        )}
-
-        <div className="mt-6 text-center">
-          <div className="text-sm text-muted-foreground">
-            Remember your password?{' '}
-            <Link
-              to="/login"
-              className="text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-              Sign in to Nexa
-            </Link>
           </div>
-        </div>
-      </div>
-    </div>
+
+          <div className="flex flex-col gap-2.5">
+            <button type="submit" className="btn btn-primary w-full">
+              Continue to verification
+            </button>
+            <button type="button" onClick={() => setStep("email")} className="btn btn-ghost w-full">
+              Use a different email
+            </button>
+          </div>
+        </form>
+      )}
+    </AuthLayout>
   );
 };
 

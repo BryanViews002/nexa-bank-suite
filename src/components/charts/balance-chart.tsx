@@ -1,105 +1,99 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useId } from "react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import type { TooltipProps } from "recharts";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { currency, currencyCompact } from "@/lib/format";
+
+export interface BalancePoint {
+  date: string;
+  balance: number;
+}
 
 interface BalanceChartProps {
-  data: Array<{
-    date: string;
-    balance: number;
-    change?: number;
-  }>;
+  data: BalancePoint[];
   height?: number;
 }
 
-export function BalanceChart({ data, height = 300 }: BalanceChartProps) {
-  if (!data || data.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Balance Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-64 text-muted-foreground">
-            No balance data available
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Calculate overall trend
-  const firstBalance = data[0]?.balance || 0;
-  const lastBalance = data[data.length - 1]?.balance || 0;
-  const overallChange = lastBalance - firstBalance;
-  const changePercent = firstBalance > 0 ? ((overallChange / firstBalance) * 100).toFixed(1) : '0.0';
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-          <p className="text-sm font-medium">{label}</p>
-          <p className="text-sm text-success">
-            Balance: ${payload[0].value.toLocaleString()}
-          </p>
-          {payload[0].payload.change && (
-            <p className={`text-sm ${payload[0].payload.change >= 0 ? 'text-success' : 'text-error'}`}>
-              Change: {payload[0].payload.change >= 0 ? '+' : ''}${payload[0].payload.change.toLocaleString()}
-            </p>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
+function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  const value = payload?.[0]?.value;
+  if (!active || value == null) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Balance Trend</CardTitle>
-          <div className={`flex items-center gap-1 text-sm ${overallChange >= 0 ? 'text-success' : 'text-error'}`}>
-            {overallChange >= 0 ? (
-              <TrendingUp className="h-4 w-4" />
-            ) : (
-              <TrendingDown className="h-4 w-4" />
-            )}
-            <span>
-              {overallChange >= 0 ? '+' : ''}${overallChange.toLocaleString()} ({changePercent}%)
-            </span>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={height}>
-          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-            <XAxis 
-              dataKey="date" 
-              className="text-xs fill-muted-foreground"
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              className="text-xs fill-muted-foreground"
-              tick={{ fontSize: 12 }}
-              tickFormatter={(value) => `$${value.toLocaleString()}`}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="balance"
-              stroke="hsl(var(--success))"
-              strokeWidth={2}
-              fill="url(#balanceGradient)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="tabular mt-0.5 text-sm font-semibold text-foreground">{currency(value)}</p>
+    </div>
   );
 }
+
+export function BalanceChart({ data, height = 260 }: BalanceChartProps) {
+  const gradientId = useId();
+  const colors = useThemeColors(["primary", "chart-grid", "chart-axis", "card"]);
+
+  if (!data?.length) return null;
+
+  // Recharts' default domain starts at zero, which flattens any real balance
+  // history into a straight line. Pad around the actual range instead.
+  const values = data.map((d) => d.balance);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const pad = Math.max((max - min) * 0.15, max * 0.02, 1);
+
+  const primary = colors.primary ?? "currentColor";
+
+  return (
+    <div style={{ height }} className="w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={primary} stopOpacity={0.28} />
+              <stop offset="100%" stopColor={primary} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+
+          {/* Horizontal rules only — vertical grid lines add noise to a time
+              series without helping anyone read a value. */}
+          <CartesianGrid stroke={colors["chart-grid"]} strokeDasharray="3 3" vertical={false} />
+
+          <XAxis
+            dataKey="date"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 11, fill: colors["chart-axis"] }}
+            tickMargin={12}
+            minTickGap={24}
+          />
+
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 11, fill: colors["chart-axis"] }}
+            tickFormatter={(value: number) => currencyCompact(value)}
+            tickMargin={8}
+            width={56}
+            domain={[min - pad, max + pad]}
+          />
+
+          <Tooltip
+            content={<ChartTooltip />}
+            cursor={{ stroke: colors["chart-axis"], strokeWidth: 1, strokeDasharray: "4 4" }}
+          />
+
+          <Area
+            type="monotone"
+            dataKey="balance"
+            stroke={primary}
+            strokeWidth={2}
+            fill={`url(#${gradientId})`}
+            activeDot={{ r: 4, fill: primary, stroke: colors.card, strokeWidth: 2 }}
+            // Re-running the reveal on every filter change is distracting.
+            isAnimationActive={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export default BalanceChart;

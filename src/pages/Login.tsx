@@ -1,193 +1,159 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { AuthLayout, AuthError } from "@/components/layout/AuthLayout";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react";
+import { apiUrl, jsonPost, readError } from "@/lib/api";
+import {
+  consumePostAuthRedirect,
+  OnboardingContract,
+  resolveRoleAwareRedirect,
+  setPostAuthRedirect,
+} from "@/lib/auth-flow";
+import { refreshCsrfToken } from "@/lib/admin-api";
 
 interface LoginForm {
   username: string;
   password: string;
 }
 
-interface LoginResponse {
+interface LoginResponse extends OnboardingContract {
   message: string;
+  needMfa?: boolean;
   requiresMFA?: boolean;
   sessionId?: string;
+  otp?: string;
 }
 
 const Login = () => {
-  const [formData, setFormData] = useState<LoginForm>({
-    username: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState<LoginForm>({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    setError(''); // Clear errors when user types
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('http://localhost:8080/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important for session cookies
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(apiUrl("/api/v1/auth/login"), jsonPost(formData));
 
       if (response.ok) {
         const data: LoginResponse = await response.json();
-        
-        if (data.requiresMFA) {
-          // If MFA is required, navigate to OTP page
-          navigate('/otp', { state: { sessionId: data.sessionId } });
+
+        // Backend returns either `needMfa` or `requiresMFA` depending on version
+        if (data.needMfa || data.requiresMFA) {
+          if (data.otp) localStorage.setItem("pendingOtp", data.otp);
+          localStorage.setItem("otpPurpose", "LOGIN");
+          localStorage.setItem("pendingUsername", formData.username);
+          if (data.redirectTo) setPostAuthRedirect(data.redirectTo);
+          navigate("/otp", { state: { sessionId: data.sessionId } });
         } else {
-          // Successful login without MFA
-          toast({
-            title: "Login Successful",
-            description: "Welcome back to Nexa Bank!",
-          });
-          navigate('/dashboard');
+          const redirectTo = await resolveRoleAwareRedirect(data, consumePostAuthRedirect());
+          if (redirectTo.startsWith("/admin")) {
+            await refreshCsrfToken(true).catch(() => undefined);
+          }
+          toast({ title: "Welcome back", description: "You're signed in." });
+          navigate(redirectTo);
         }
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Login failed. Please check your credentials.');
+        setError(await readError(response, "That username or password doesn't match our records."));
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('Network error. Please try again.');
+    } catch {
+      setError("We couldn't reach the server. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
-      <div className="w-full max-w-md">
-        {/* Back to Home */}
-        <div className="mb-6">
-          <Link 
-            to="/" 
-            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+    <AuthLayout
+      title="Sign in"
+      subtitle="Enter your details to reach your dashboard."
+      back={{ to: "/", label: "Back to home" }}
+      footer={
+        <p className="text-muted-foreground">
+          Don't have an account?{" "}
+          <Link to="/register" className="font-medium text-primary underline-offset-4 hover:underline">
+            Open one
           </Link>
+        </p>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <AuthError message={error} />
+
+        <div>
+          <label htmlFor="username" className="field-label">
+            Username
+          </label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            autoComplete="username"
+            autoFocus
+            value={formData.username}
+            onChange={handleInputChange}
+            placeholder="Your username"
+            required
+            aria-invalid={Boolean(error)}
+            className="field"
+          />
         </div>
 
-        <Card className="nexa-card">
-          <CardHeader className="space-y-1 text-center">
-            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <LogIn className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-            <CardDescription>
-              Sign in to your Nexa Bank account
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="p-3 text-sm text-error bg-error/10 border border-error/20 rounded-lg">
-                  {error}
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <label htmlFor="username" className="text-sm font-medium text-foreground">
-                  Username
-                </label>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  placeholder="Enter your username"
-                  required
-                  className="nexa-input"
-                  aria-describedby="username-error"
-                />
-              </div>
+        <div>
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="password" className="field-label">
+              Password
+            </label>
+            <Link
+              to="/reset-password"
+              className="mb-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Forgot?
+            </Link>
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Password
-                </label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter your password"
-                    required
-                    className="nexa-input pr-10"
-                    aria-describedby="password-error"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Your password"
+              required
+              aria-invalid={Boolean(error)}
+              className="field pr-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
 
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full nexa-btn-primary"
-              >
-                {loading ? 'Signing In...' : 'Sign In'}
-              </Button>
-            </form>
-
-            <div className="mt-6 space-y-4">
-              <div className="text-center">
-                <Link 
-                  to="/reset-password" 
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
-              
-              <div className="text-center text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <Link 
-                  to="/register" 
-                  className="text-primary hover:text-primary/80 font-medium transition-colors"
-                >
-                  Register here
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        <button type="submit" disabled={loading} className="btn btn-primary w-full">
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 };
 

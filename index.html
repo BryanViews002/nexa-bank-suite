@@ -3,20 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nexa Bank - Secure and Simple Banking</title>
-    <meta name="description" content="Experience the future of banking with Nexa. Secure, simple, and intuitive banking platform." />
-    <meta name="author" content="Nexa Bank" />
 
-    <meta property="og:title" content="Nexa Bank - Secure and Simple Banking" />
-    <meta property="og:description" content="Experience the future of banking with Nexa. Secure, simple, and intuitive banking platform." />
+    <title>Nexa — Modern banking for the way you actually work</title>
+    <meta
+      name="description"
+      content="Open accounts, send money to any Nexa user, and track every transaction in real time. Protected by multi-factor authentication."
+    />
+    <meta name="author" content="Nexa" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0c0f16" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..700&display=swap"
+      rel="stylesheet"
+    />
+
+    <meta property="og:title" content="Nexa — Modern banking for the way you actually work" />
+    <meta
+      property="og:description"
+      content="Open accounts, send money to any Nexa user, and track every transaction in real time."
+    />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!--
+      Resolve the theme before first paint. Without this the page renders in the
+      default theme for a frame and then snaps, which is very visible on reload.
+      Must stay in sync with ThemeProvider's storage key and default.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("nexa-ui-theme") || "dark";
+          var theme =
+            stored === "system"
+              ? window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+              : stored;
+          document.documentElement.classList.add(theme);
+          document.documentElement.style.colorScheme = theme;
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

@@ -33,19 +33,26 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove('light', 'dark');
+    const apply = (resolved: 'dark' | 'light') => {
+      root.classList.remove('light', 'dark');
+      root.classList.add(resolved);
+      // Keeps native controls, scrollbars and form widgets in step with the
+      // theme. Without it they stay in the OS appearance and stand out.
+      root.style.colorScheme = resolved;
+    };
 
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
-        ? 'dark'
-        : 'light';
-
-      root.classList.add(systemTheme);
+    if (theme !== 'system') {
+      apply(theme);
       return;
     }
 
-    root.classList.add(theme);
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+    apply(query.matches ? 'dark' : 'light');
+
+    // Follow the OS live while set to 'system'.
+    const onChange = (event: MediaQueryListEvent) => apply(event.matches ? 'dark' : 'light');
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
   }, [theme]);
 
   const value = {
