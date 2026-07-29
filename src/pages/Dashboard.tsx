@@ -553,7 +553,7 @@ const Dashboard = () => {
                           onClick={() => setActiveTab("move-money")}
                           className="btn btn-secondary btn-sm"
                         >
-                          Move some money
+                          Move some moneyy
                         </button>
                       }
                     />
